@@ -59,7 +59,6 @@ public class TicketDAO {
 				ticket.setPrice(rs.getDouble(3));
 				ticket.setInTime(rs.getTimestamp(4));
 				ticket.setOutTime(rs.getTimestamp(5));
-				System.out.println("voiture: " + vehicleRegNumber + "id ticket: " + rs.getInt(2));
 			}
 
 			dataBaseConfig.closeResultSet(rs);
@@ -100,8 +99,8 @@ public class TicketDAO {
 			PreparedStatement ps = con.prepareStatement(DBConstants.GET_NBTICKET);
 			ps.setString(1, vehicleRegNumber);
 			ResultSet rs = ps.executeQuery();
-			while (rs.next()) {
-				nbTicket++;
+			if (rs.next()) {
+				nbTicket = rs.getInt(1);
 			}
 			dataBaseConfig.closeResultSet(rs);
 			dataBaseConfig.closePreparedStatement(ps);

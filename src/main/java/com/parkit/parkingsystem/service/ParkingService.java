@@ -16,7 +16,7 @@ public class ParkingService {
 
 	private static final Logger logger = LogManager.getLogger("ParkingService");
 
-	private static FareCalculatorService fareCalculatorService = new FareCalculatorService();
+	private FareCalculatorService fareCalculatorService = new FareCalculatorService();
 
 	private InputReaderUtil inputReaderUtil;
 	private ParkingSpotDAO parkingSpotDAO;
@@ -28,11 +28,24 @@ public class ParkingService {
 		this.ticketDAO = ticketDAO;
 	}
 
+	public ParkingService(InputReaderUtil inputReaderUtil, ParkingSpotDAO parkingSpotDAO, TicketDAO ticketDAO,
+			FareCalculatorService fareCalculatorService) {
+		this(inputReaderUtil, parkingSpotDAO, ticketDAO);
+		this.fareCalculatorService = fareCalculatorService;
+	}
+
 	public void processIncomingVehicle() {
 		try {
 			ParkingSpot parkingSpot = getNextParkingNumberIfAvailable();
 			if (parkingSpot != null && parkingSpot.getId() > 0) {
 				String vehicleRegNumber = getVehichleRegNumber();
+
+				Ticket oldTicket = ticketDAO.getTicket(vehicleRegNumber);
+
+				if (oldTicket != null && oldTicket.getOutTime() == null) {
+					throw new Exception("This vehicle is already registered into the parking");
+				}
+
 				parkingSpot.setAvailable(false);
 				parkingSpotDAO.updateParking(parkingSpot);// allot this parking space and mark it's availability as
 															// false
@@ -43,7 +56,7 @@ public class ParkingService {
 				// ticket.setId(ticketID);
 				ticket.setParkingSpot(parkingSpot);
 				ticket.setVehicleRegNumber(vehicleRegNumber);
-				ticket.setPrice(0);
+				ticket.setPrice(-1);
 				ticket.setInTime(inTime);
 				ticket.setOutTime(null);
 				ticketDAO.saveTicket(ticket);

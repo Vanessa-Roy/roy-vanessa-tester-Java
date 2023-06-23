@@ -7,6 +7,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.Date;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -30,6 +32,7 @@ public class ParkingServiceTest {
 	private static ParkingService parkingService;
 	private static ParkingSpot parkingSpot;
 	private static Ticket ticket;
+	private ByteArrayOutputStream outContent = new ByteArrayOutputStream();
 
 	@Mock
 	private static InputReaderUtil inputReaderUtil;
@@ -56,6 +59,7 @@ public class ParkingServiceTest {
 
 	@Test
 	public void processExitingVehicleTest() throws Exception {
+		
 		// used parkingService.getVehichleRegNumber() -> parkingService.processExitingVehicle()
 		when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
 		//used parkingService.processExitingVehicle
@@ -64,31 +68,45 @@ public class ParkingServiceTest {
 		when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(2);
 		//used parkingService.processExitingVehicle
 		when(ticketDAO.updateTicket(ticket)).thenReturn(true);
+		//used parkingService.processExitingVehicle
 		when(parkingSpotDAO.updateParking(parkingSpot)).thenReturn(true);
 		
 		parkingService.processExitingVehicle();
 		
+		verify(ticketDAO, Mockito.times(1)).getNbTicket("ABCDEF");
 		verify(parkingSpotDAO, Mockito.times(1)).updateParking(parkingSpot);
-		assertTrue(parkingSpotDAO.updateParking(parkingSpot));
+
 	}
 
 	@Test
 	public void testProcessIncomingVehicle() throws Exception {
-		// used parkingService.getVehichleType() -> parkingService.getNextParkingNumberIfAvailable() -> parkingService.processIncomingVehicle()
+		// used parkingService.getVehichleType() ->
+		// parkingService.getNextParkingNumberIfAvailable() ->
+		// parkingService.processIncomingVehicle()
 		when(inputReaderUtil.readSelection()).thenReturn(1);
-		//GIVEN the slot 1 is available
-		// used parkingService.getNextParkingNumberIfAvailable() -> parkingService.processIncomingVehicle()
+		// GIVEN the slot 1 is available
+		// used parkingService.getNextParkingNumberIfAvailable() ->
+		// parkingService.processIncomingVehicle()
 		when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(1);
-		// used parkingService.getVehichleRegNumber() -> parkingService.processIncomingVehicle()
+		// used parkingService.getVehichleRegNumber() ->
+		// parkingService.processIncomingVehicle()
 		when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
-		when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(2);
+		// used parkingService.processIncomingVehicle()
+		when(parkingSpotDAO.updateParking(parkingSpot)).thenReturn(true);
+		// used parkingService.processIncomingVehicle()
 		when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
+		when(ticketDAO.getNbTicket("ABCDEF")).thenReturn(2);
+		
+		System.setOut(new PrintStream(outContent));
 
 		parkingService.processIncomingVehicle();
 
-		verify(parkingSpotDAO, Mockito.times(1)).updateParking(any(ParkingSpot.class));
-		assertTrue(ticketDAO.saveTicket(ticket));
-		assertEquals(1,parkingSpot.getId());
+		verify(parkingSpotDAO, Mockito.times(1)).updateParking(parkingSpot);
+		verify(ticketDAO, Mockito.times(1)).saveTicket(any(Ticket.class));
+		verify(ticketDAO, Mockito.times(1)).getNbTicket("ABCDEF");
+		assertTrue(outContent.toString().contains("Generated Ticket and saved in DB"));
+		
+		System.setOut(null);
 	}
 
 	@Test
