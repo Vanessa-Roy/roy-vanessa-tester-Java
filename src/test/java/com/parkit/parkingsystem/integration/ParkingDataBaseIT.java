@@ -1,8 +1,9 @@
 package com.parkit.parkingsystem.integration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -61,7 +62,7 @@ public class ParkingDataBaseIT {
     }
 
 	@AfterAll
-	private static void tearDown(){
+	private static void tearDown() {
 		dataBasePrepareService.clearDataBaseEntries();
 	}
 
@@ -73,8 +74,8 @@ public class ParkingDataBaseIT {
 		Ticket savedTicket = ticketDAO.getTicket("ABCDEF");
 
 		assertNotNull(savedTicket);
-		assertNotSame(0, savedTicket.getId());
-		assertEquals(false, savedTicket.getParkingSpot().isAvailable());
+		assertNotEquals(0, savedTicket.getId());
+		assertFalse(savedTicket.getParkingSpot().isAvailable());
 	}
 
 	@Test
@@ -94,7 +95,7 @@ public class ParkingDataBaseIT {
 		Ticket savedTicket = ticketDAO.getTicket("ABCDEF");
 
 		assertNotNull(savedTicket);
-		assertNotSame(0, savedTicket.getPrice());
+		assertNotEquals(0d, savedTicket.getPrice());
 		assertNotNull(savedTicket.getOutTime());
 		assertEquals(savedTicket.getParkingSpot().getId(), parkingService.getNextParkingNumberIfAvailable().getId());
 
@@ -126,7 +127,6 @@ public class ParkingDataBaseIT {
 
 		assertNotNull(savedTicket);
 		assertEquals(2, ticketDAO.getNbTicket("ABCDEF"));
-		assertNotSame(0, savedTicket.getPrice());
 		verify(fareCalculatorService, times(1)).calculateFare(any(Ticket.class), eq(true));
 	}
 }
