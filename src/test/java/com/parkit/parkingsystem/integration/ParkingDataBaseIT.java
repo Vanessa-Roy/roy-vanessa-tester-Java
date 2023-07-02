@@ -127,6 +127,7 @@ public class ParkingDataBaseIT {
 
 		assertNotNull(savedTicket);
 		assertEquals(2, ticketDAO.getNbTicket("ABCDEF"));
+		assertEquals(2, savedTicket.getId());
 		verify(fareCalculatorService, times(1)).calculateFare(any(Ticket.class), eq(true));
 	}
 }
